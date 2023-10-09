@@ -1,53 +1,133 @@
-from turtle import Turtle
+import turtle
+import time
+import random
 
-Starting_Position=[(0,0),(-20,0),(-40,0)]
-moving_distance=20
+win = turtle.Screen()
+win.title("Snake Game")
+win.bgcolor("black")
+win.setup(width=600, height=600)
+win.tracer(0)
 
-up=90
-down=270
-left=180
-right=0
+head = turtle.Turtle()
+head.speed(0)
+head.shape("square")
+head.color("white")
+head.penup()
+head.goto(0, 0)
+head.direction = "stop"
 
-class Snake:
+food = turtle.Turtle()
+food.speed(0)
+food.shape("circle")
+food.color("red")
+food.penup()
+food.goto(0, 100)
 
-    def __init__(self):
-        self.segment=[]
-        self.creat_snake()
-        self.head=self.segment[0]
+segments = []
+def go_up():
+    if head.direction != "down":
+        head.direction = "up"
 
-    def creat_snake(self):
-        for position in Starting_Position:
-            self.add_segment(position)
+def go_down():
+    if head.direction != "up":
+        head.direction = "down"
 
-    def add_segment(self,position):
-        new_segment=Turtle("square")
+def go_left():
+    if head.direction != "right":
+        head.direction = "left"
+
+def go_right():
+    if head.direction != "left":
+        head.direction = "right"
+
+def move():
+    if head.direction == "up":
+        y = head.ycor()
+        head.sety(y + 20)
+
+    if head.direction == "down":
+        y = head.ycor()
+        head.sety(y - 20)
+
+    if head.direction == "left":
+        x = head.xcor()
+        head.setx(x - 20)
+
+    if head.direction == "right":
+        x = head.xcor()
+        head.setx(x + 20)
+
+def check_collision():
+    if head.distance(food) < 20:
+        x = random.randint(-290, 290)
+        y = random.randint(-290, 290)
+        food.goto(x, y)
+
+        new_segment = turtle.Turtle()
+        new_segment.speed(0)
+        new_segment.shape("square")
         new_segment.color("white")
         new_segment.penup()
-        new_segment.goto(position)
+        segments.append(new_segment)
 
-    def extend(self):
-        self.add_segment(self.segments[-1].position())
+def check_border_collision():
+    if (
+        head.xcor() > 290
+        or head.xcor() < -290
+        or head.ycor() > 290
+        or head.ycor() < -290
+    ):
+        return True
+    return False
 
-    def movement(self):
-        for seg_num in range(len(self.segments)-1,0,-1):
-            new_x=self.segments[seg_num-1].xcor()
-            new_y=self.segments[seg_num-1].ycor()
-            self.segments[seg_num].goto(new_x,new_y)
-        self.head.forword(moving_distance)
+def game_over():
+    head.goto(0, 0)
+    head.direction = "stop"
 
-    def up(self):
-        if self.head.heading()!=down:
-            self.head.setheading(up)
+    for segment in segments:
+        segment.goto(1000, 1000)
 
-    def down(self):
-        if self.head.heading()!=up:
-            self.head.setheading(down)
+    segments.clear()
 
-    def right(self):
-        if self.head.heading()!=left:
-            self.head.setheading(right)
+    win.clear()
 
-    def left(self):
-        if self.head.heading()!=right:
-            self.head.setheading(left) 
+    message = turtle.Turtle()
+    message.speed(0)
+    message.color("white")
+    message.penup()
+    message.hideturtle()
+    message.goto(0, 0)
+    message.write("Game Over", align="center", font=("Courier", 24, "normal"))
 
+win.listen()
+win.onkeypress(go_up, "Up")
+win.onkeypress(go_down, "Down")
+win.onkeypress(go_left, "Left")
+win.onkeypress(go_right, "Right")
+
+while True:
+    win.update()
+
+    if head.direction != "stop":
+        for index in range(len(segments) - 1, 0, -1):
+            x = segments[index - 1].xcor()
+            y = segments[index - 1].ycor()
+            segments[index].goto(x, y)
+
+        if len(segments) > 0:
+            x = head.xcor()
+            y = head.ycor()
+            segments[0].goto(x, y)
+
+        move()
+
+        if check_border_collision():
+            game_over()
+
+        for segment in segments:
+            if segment.distance(head) < 20:
+                game_over()
+
+        check_collision()
+
+        time.sleep(0.1)
